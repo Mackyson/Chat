@@ -3,21 +3,28 @@ package main
 import (
 	"fmt"
 	"golang.org/x/net/websocket"
-	"io"
 	"net/http"
-	"strconv"
 )
 
+type room struct {
+	messages []*string
+	receive  chan *string
+	join     chan *client
+	leave    chan *client
+	clients  map[*client]bool
+}
+
+func newRoom() *room {
+	return &room{
+		messages: []*string{},
+		receive:  make(chan *string),
+		join:     make(chan *client),
+		leave:    make(chan *client),
+		clients:  make(map[*client]bool),
+	}
+}
 func main() {
-	const port = 8080
-	fmt.Println("Listening on", port)
-	http.Handle("/echo", websocket.Handler(echo))
-	//http.HandleFunc("/", hello)
-	fmt.Println(http.ListenAndServe(":"+strconv.Itoa(port), nil))
-}
-func echo(ws *websocket.Conn) {
-	io.Copy(ws, ws)
-}
-func hello(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello!"))
+	room := newRoom()
+	fmt.Println("Listening on 8080")
+	fmt.Println(http.ListenAndServe(":8080", nil))
 }
