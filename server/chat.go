@@ -19,6 +19,28 @@ func newClient(ws *websocket.Conn, room *room) *client {
 		room:  room,
 	}
 }
+func (c *client) listen() {
+	for {
+		var msg string
+		err := websocket.Message.Receive(c.conn, &msg)
+		c.room.receive <- &msg
+		if err != nil {
+			fmt.Println(err)
+			c.room.leave <- c
+			c.conn.Close()
+			return
+		} else {
+			c.msgCh <- &msg
+		}
+	}
+}
+func (c *client) write(msg *string) {
+	err := websocket.Message.Send(c.conn, *msg)
+	if err != nil {
+		panic(err)
+	}
+}
+
 type room struct {
 	messages []*string
 	receive  chan *string
