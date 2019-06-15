@@ -7,30 +7,26 @@ import (
 )
 
 type client struct {
-	conn  *websocket.Conn
-	msgCh chan *string
-	room  *room
+	conn *websocket.Conn
+	room *room
 }
 
 func newClient(ws *websocket.Conn, room *room) *client {
 	return &client{
-		conn:  ws,
-		msgCh: make(chan *string, 256),
-		room:  room,
+		conn: ws,
+		room: room,
 	}
 }
 func (c *client) listen() {
 	for {
 		var msg string
 		err := websocket.Message.Receive(c.conn, &msg)
-		c.room.receive <- &msg
 		if err != nil {
 			fmt.Println(err)
-			c.room.leave <- c
-			c.conn.Close()
+			c.room.Leave(c)
 			return
 		} else {
-			c.msgCh <- &msg
+			c.room.receive <- &msg
 		}
 	}
 }
@@ -55,7 +51,7 @@ func newRoom() *room {
 		receive:  make(chan *string),
 		join:     make(chan *client),
 		leave:    make(chan *client),
-		clients:  make(map[*client]bool),
+		clients:  map[*client]bool{},
 	}
 }
 
@@ -99,9 +95,9 @@ func (r *room) listen() {
 		case c := <-r.leave:
 			fmt.Println("Bye someone!")
 			delete(r.clients, c)
-			close(c.msgCh)
+			c.conn.Close()
 		case msg := <-r.receive:
-			fmt.Println("New Message!")
+			fmt.Println("New message!")
 			r.Broadcast(msg)
 			r.messages = append(r.messages, msg)
 		}
