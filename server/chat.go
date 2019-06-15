@@ -6,6 +6,19 @@ import (
 	"net/http"
 )
 
+type client struct {
+	conn  *websocket.Conn
+	msgCh chan *string
+	room  *room
+}
+
+func newClient(ws *websocket.Conn, room *room) *client {
+	return &client{
+		conn:  ws,
+		msgCh: make(chan *string, 256),
+		room:  room,
+	}
+}
 type room struct {
 	messages []*string
 	receive  chan *string
