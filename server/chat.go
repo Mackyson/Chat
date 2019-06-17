@@ -76,11 +76,6 @@ func (r *room) Broadcast(msg *string) {
 }
 func (r *room) listen() {
 	connect := func(ws *websocket.Conn) {
-		defer func() {
-			for c := range r.clients {
-				c.conn.Close()
-			}
-		}()
 		client := newClient(ws, r)
 		r.Join(client)
 		client.listen()
