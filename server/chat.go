@@ -33,7 +33,8 @@ func (c *client) listen() {
 func (c *client) write(msg *string) {
 	err := websocket.Message.Send(c.conn, *msg)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		fmt.Println(len(c.room.clients))
 	}
 }
 
@@ -103,5 +104,6 @@ func main() {
 	room := newRoom()
 	fmt.Println("Listening on 8080")
 	go room.listen()
-	fmt.Println(http.ListenAndServe(":8080", nil))
+	http.Handle("/", http.FileServer(http.Dir("../client")))
+	http.ListenAndServe(":8080", nil)
 }
