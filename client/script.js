@@ -24,7 +24,14 @@ function enter(){
 	if (roomName !== "" && userName !== ""){
 		entrance.style.display="none";
 		chat.style.display="block";
-		startChat(roomName,userName)
+		ws = new WebSocket("ws://localhost:8080/entry")
+		ws.addEventListener("open",function(e){ws.send(roomName)});
+		ws.addEventListener("message",function(e){
+		 if (e.data === "ok"){
+			 ws.close();
+			startChat(roomName,userName)
+		 }
+		});
 	}
 	else{
 		entrance.insertAdjacentHTML("beforeend","<br>your input is null")

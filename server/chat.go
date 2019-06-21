@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+var openRoomList = make(map[string]bool)
+
 type client struct {
 	conn *websocket.Conn
 	room *room
@@ -39,6 +41,7 @@ func (c *client) write(msg *string) {
 }
 
 type room struct {
+	pattern  string
 	messages []*string
 	receive  chan *string
 	join     chan *client
@@ -46,8 +49,9 @@ type room struct {
 	clients  map[*client]bool
 }
 
-func newRoom() *room {
+func newRoom(pattern string) *room {
 	return &room{
+		pattern:  pattern,
 		messages: []*string{},
 		receive:  make(chan *string),
 		join:     make(chan *client),
@@ -81,7 +85,11 @@ func (r *room) listen() {
 		r.Join(client)
 		client.listen()
 	}
-	http.Handle("/echo", websocket.Handler(connect))
+	if !openRoomList[r.pattern] {
+		openRoomList[r.pattern] = true
+		fmt.Println(r.pattern, "opened")
+		http.Handle("/"+r.pattern, websocket.Handler(connect))
+	}
 	for {
 		select {
 		case c := <-r.join:
@@ -100,10 +108,19 @@ func (r *room) listen() {
 	}
 }
 
+func entryListen(ws *websocket.Conn) {
+	var pattern string
+	websocket.Message.Receive(ws, &pattern)
+	if pattern != "" {
+		room := newRoom(pattern)
+		go room.listen()
+	}
+	websocket.Message.Send(ws, "ok")
+}
+
 func main() {
-	room := newRoom()
 	fmt.Println("Listening on 8080")
-	go room.listen()
+	http.Handle("/entry", websocket.Handler(entryListen))
 	http.Handle("/", http.FileServer(http.Dir("../client")))
 	http.ListenAndServe(":8080", nil)
 }
