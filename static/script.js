@@ -2,6 +2,9 @@ function startChat(pattern,userName){
 	ws = new WebSocket("ws://localhost:8080/"+pattern)
 	ws.addEventListener("open",function(e){
 			console.log("WebSocket connected")
+		ws.send(
+			userName+" Joined!"
+		)
 	});
 	ws.addEventListener("message",function(e){
 		msg = e.data

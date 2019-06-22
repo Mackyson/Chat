@@ -128,6 +128,6 @@ func entryListen(ws *websocket.Conn) {
 func main() {
 	fmt.Println("Listening on 8080")
 	http.Handle("/entry", websocket.Handler(entryListen))
-	http.Handle("/", http.FileServer(http.Dir("../client")))
+	http.Handle("/", http.FileServer(http.Dir("../static")))
 	http.ListenAndServe(":8080", nil)
 }
