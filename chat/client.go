@@ -10,12 +10,14 @@ import (
 const TIME_LAYOUT = "15:04:05"
 
 type client struct {
+	name string
 	conn *websocket.Conn
 	room *room
 }
 
-func newClient(ws *websocket.Conn, room *room) *client {
+func newClient(ws *websocket.Conn, room *room, name string) *client {
 	return &client{
+		name: name,
 		conn: ws,
 		room: room,
 	}

@@ -38,12 +38,21 @@ function enter(){
 	var roomName = document.getElementById("roomName").value;
 	var userName = document.getElementById("userName").value;
 	var entrance = document.getElementById("entrance");
-	var chat = document.getElementById("chat");
+	var chat     = document.getElementById("chat");
 	if (roomName !== "" && userName !== ""){
+		//displayの値で画面を切り替え
 		entrance.style.display="none";
 		chat.style.display="block";
+		//エントリー用のハンドラに接続
 		ws = new WebSocket("ws://localhost:8080/entry")
-		ws.addEventListener("open",function(e){ws.send(roomName)});
+		ws.addEventListener("open",function(e){
+			var data = {}
+			data["pattern"] = roomName
+			data["name"] = userName
+			ws.send(
+				JSON.stringify(data)
+			)
+		});
 		ws.addEventListener("message",function(e){
 		 if (e.data === "ok"){
 			 ws.close();

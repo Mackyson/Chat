@@ -44,31 +44,21 @@ func (r *room) Broadcast(msg *Message) {
 	}
 }
 func (r *room) listen() {
-	connect := func(ws *websocket.Conn) {
-		client := newClient(ws, r)
-		r.Join(client)
-		client.listen()
-	}
-	if !openRoomList[r.pattern] {
-		openRoomList[r.pattern] = true
-		fmt.Println(r.pattern, "opened")
-		http.Handle("/"+r.pattern, websocket.Handler(connect))
-	}
 	for {
 		select {
 		case c := <-r.join:
-			log.Printf("New User %s Joined", c.name)
+			log.Printf("New User %s Joined %s", c.name, r.pattern)
 			r.clients[c] = true
 			r.SendPastMessages(c)
 		case c := <-r.leave:
-			log.Printf("%s left chat", c.name)
+			log.Printf("%s left %s", c.name, r.pattern)
 			delete(r.clients, c)
 			c.conn.Close()
 			if len(r.clients) == 0 {
 				r.messages = nil
 			}
 		case msg := <-r.receive:
-			log.Printf("%s : %s", msg.Name, msg.Payload)
+			log.Printf("%s says %s", msg.Name, msg.Payload)
 			r.Broadcast(msg)
 			r.messages = append(r.messages, msg)
 		}
