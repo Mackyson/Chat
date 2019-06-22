@@ -1,23 +1,37 @@
 function startChat(pattern,userName){
 	ws = new WebSocket("ws://localhost:8080/"+pattern)
+	//入室時の発言
 	ws.addEventListener("open",function(e){
-			console.log("WebSocket connected")
+		console.log("WebSocket connected")
+		var data = {}
+		data["name"] = "System"
+		data["payload"] = userName+" Joined!"
+		data["time"] = "" //クライアントの送信した時間ではなくサーバに届いた時間とする．
 		ws.send(
-			userName+" Joined!"
+			JSON.stringify(data)
 		)
 	});
+	//発言を受信したらlistに表示
 	ws.addEventListener("message",function(e){
-		msg = e.data
+		json = e.data
+		msg = JSON.parse(json)
 		console.log(msg)
+		var user=msg["name"],payload=msg["payload"],time=msg["time"]
 		var li = document.createElement("li");
-		li.textContent=msg;
+		li.textContent=user+" : "+payload+" ("+time+")"
 			document.getElementById("list").appendChild(li);
 	});
+	//boxに書いた内容を発言
 	document.getElementById("sendBtn").addEventListener("click",function(e){
+		var box = document.getElementById("box")
+		var data = {}
+		data["name"] = userName
+		data["payload"] = box.value
+		data["time"] = ""
 		ws.send(
-			userName+" : "+
-			document.getElementById("box").value
+			JSON.stringify(data)
 		)
+		box.value = ""
 	});
 }
 function enter(){

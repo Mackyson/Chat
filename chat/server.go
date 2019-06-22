@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"golang.org/x/net/websocket"
 	"net/http"
-	"time"
 )
 
 type room struct {
 	pattern  string
-	messages []*string
-	receive  chan *string
+	messages []*Message
+	receive  chan *Message
 	join     chan *client
 	leave    chan *client
 	clients  map[*client]bool
@@ -19,8 +18,8 @@ type room struct {
 func newRoom(pattern string) *room {
 	return &room{
 		pattern:  pattern,
-		messages: []*string{},
-		receive:  make(chan *string),
+		messages: []*Message{},
+		receive:  make(chan *Message),
 		join:     make(chan *client),
 		leave:    make(chan *client),
 		clients:  map[*client]bool{},
@@ -33,7 +32,7 @@ func (r *room) Join(c *client) {
 func (r *room) Leave(c *client) {
 	r.leave <- c
 }
-func (r *room) Receive(msg *string) {
+func (r *room) Receive(msg *Message) {
 	r.receive <- msg
 }
 func (r *room) SendPastMessages(c *client) {
@@ -41,10 +40,7 @@ func (r *room) SendPastMessages(c *client) {
 		c.write(msg)
 	}
 }
-func (r *room) Broadcast(msg *string) {
-	layout := "(15:04:05)"
-	tmp := time.Now().Format(layout)
-	*msg += "\t" + tmp
+func (r *room) Broadcast(msg *Message) {
 	for c := range r.clients {
 		c.write(msg)
 	}
