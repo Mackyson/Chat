@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"golang.org/x/net/websocket"
-	"net/http"
+	"log"
 )
 
 type room struct {
@@ -59,18 +57,18 @@ func (r *room) listen() {
 	for {
 		select {
 		case c := <-r.join:
-			fmt.Println("New comer!")
+			log.Printf("New User %s Joined", c.name)
 			r.clients[c] = true
 			r.SendPastMessages(c)
 		case c := <-r.leave:
-			fmt.Println("Bye someone!")
+			log.Printf("%s left chat", c.name)
 			delete(r.clients, c)
 			c.conn.Close()
 			if len(r.clients) == 0 {
 				r.messages = nil
 			}
 		case msg := <-r.receive:
-			fmt.Println("New message!")
+			log.Printf("%s : %s", msg.Name, msg.Payload)
 			r.Broadcast(msg)
 			r.messages = append(r.messages, msg)
 		}

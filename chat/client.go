@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"golang.org/x/net/websocket"
+	"io"
+	"log"
 	"time"
 )
 
@@ -24,7 +25,9 @@ func (c *client) listen() {
 		var msg *Message
 		err := websocket.JSON.Receive(c.conn, &msg)
 		if err != nil {
-			fmt.Println(err)
+			if err != io.EOF {
+				log.Println(err) //EOFは無視していい
+			}
 			c.room.Leave(c)
 			return
 		} else {
@@ -36,7 +39,6 @@ func (c *client) listen() {
 func (c *client) write(msg *Message) {
 	err := websocket.JSON.Send(c.conn, *msg)
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println(len(c.room.clients))
+		log.Println(err)
 	}
 }

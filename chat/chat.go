@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"golang.org/x/net/websocket"
+	"log"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ func entryListen(ws *websocket.Conn) {
 }
 
 func main() {
-	fmt.Println("Listening on 8080")
+	log.Println("Listening on 8080")
 	http.Handle("/entry", websocket.Handler(entryListen))
 	http.Handle("/", http.FileServer(http.Dir("../static")))
 	http.ListenAndServe(":8080", nil)
