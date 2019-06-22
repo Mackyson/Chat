@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"golang.org/x/net/websocket"
 	"net/http"
+	"time"
 )
 
 var openRoomList = make(map[string]bool)
@@ -75,6 +76,9 @@ func (r *room) SendPastMessages(c *client) {
 	}
 }
 func (r *room) Broadcast(msg *string) {
+	layout := "(15:04:05)"
+	tmp := time.Now().Format(layout)
+	*msg += "\t" + tmp
 	for c := range r.clients {
 		c.write(msg)
 	}
@@ -100,6 +104,9 @@ func (r *room) listen() {
 			fmt.Println("Bye someone!")
 			delete(r.clients, c)
 			c.conn.Close()
+			if len(r.clients) == 0 {
+				r.messages = nil
+			}
 		case msg := <-r.receive:
 			fmt.Println("New message!")
 			r.Broadcast(msg)

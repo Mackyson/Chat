@@ -12,6 +12,7 @@ function startChat(pattern,userName){
 	});
 	document.getElementById("sendBtn").addEventListener("click",function(e){
 		ws.send(
+			userName+" : "+
 			document.getElementById("box").value
 		)
 	});
